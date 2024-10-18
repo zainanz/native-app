@@ -3,22 +3,29 @@ import { useState } from "react";
 import { AppDispatch } from "@/store/store";
 import { useDispatch } from "react-redux";
 import { setuser } from "@/store/userSlice";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { NavigationPropsType } from "../index";
 
-export default function GetUser() {
+type UserProps = StackNavigationProp<NavigationPropsType, "User">;
+
+export default function User({ navigation }: { navigation: UserProps }) {
   const dispatch = useDispatch<AppDispatch>();
   const [username, setUsername] = useState("");
   const [text, setText] = useState<string>("");
   const [error, setError] = useState("");
+
   const onPressDisplay = () => {
     if (text && text.length > 1) {
       setError("");
       dispatch(setuser(text));
+      navigation.navigate("MainContent");
       return setUsername(text);
     } else {
       console.log(text);
-      setError(() => "It cannot be empty!");
+      setError(() => "Your nickname cant be blank!");
     }
   };
+
   return (
     <View style={styles.container}>
       <View style={styles.innerContainer}>
@@ -43,7 +50,6 @@ export default function GetUser() {
           <Text style={styles.buttonText}>Set username</Text>
         </Pressable>
       </View>
-      <Text>{text}</Text>
     </View>
   );
 }
