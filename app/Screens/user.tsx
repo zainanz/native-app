@@ -4,7 +4,7 @@ import { AppDispatch } from "@/store/store";
 import { useDispatch } from "react-redux";
 import { setuser } from "@/store/userSlice";
 import { StackNavigationProp } from "@react-navigation/stack";
-import { NavigationPropsType } from "../index";
+// import { NavigationPropsType } from "../index";
 
 type UserProps = StackNavigationProp<NavigationPropsType, "User">;
 

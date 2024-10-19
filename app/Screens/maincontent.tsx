@@ -1,8 +1,8 @@
 import { View, Text, StyleSheet, Pressable } from "react-native";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { FontAwesome5 } from "@expo/vector-icons";
 
-type DataType = {
+type TaskType = {
   activity: string;
   availability: number;
   type: string;
@@ -19,43 +19,68 @@ export default function MainContent() {
   const [currentMood, setCurrentMood] = useState<React.JSX.Element>(
     <FontAwesome5 name="meh-rolling-eyes" size={70} color="orange" />
   );
-  const [satisfied, setSatisfied] = useState(false);
+  const [acceptedTask, setAcceptedTask] = useState<TaskType>();
   const [searching, setSearching] = useState(false);
-  const [task, setTask] = useState<DataType | null>(null);
+  const [task, setTask] = useState<TaskType | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [doneMessage, setDoneMessage] = useState("");
+
+  const onAcceptChallenge = () => {
+    setCurrentMood(() => (
+      <FontAwesome5 name="grin-alt" size={70} color="orange" />
+    ));
+    setAcceptedTask(() => task!);
+  };
 
   const onSearch = async () => {
+    console.log("Pressed");
+
     setSearching(true);
     const res = await fetch("https://bored-api.appbrewery.com/random");
-    const data = await res.json();
-    setTask(data);
-    console.log(data);
+    if (res.ok) {
+      const data = await res.json();
+      setError(null);
+      setTask(data);
+      setCurrentMood(() => (
+        <FontAwesome5 name="frown-open" size={70} color="orange" />
+      ));
+    } else {
+      setError(() => "something went wrong! Please try again later.");
+      console.log(res);
+    }
     setSearching(false);
   };
 
-  // useEffect ( () => {
-  //   if (task){
-  //     setCurrentMood( () => )
-  //   }
-  // }, [task])
+  const resetTask = () => {
+    setCurrentMood(() => (
+      <FontAwesome5 name="meh-rolling-eyes" size={70} color="orange" />
+    ));
+    setAcceptedTask(undefined);
+    setTask(null);
+  };
 
   return (
     <View style={styles.container}>
       <View style={styles.status}>
         <Text>{currentMood}</Text>
       </View>
-      <View style={styles.main}>
-        <Text style={styles.heading}>Boooored?</Text>
-        <Text style={styles.subheading}>
-          Roll the spinner to generate a random task
-        </Text>
+      <View style={!acceptedTask ? styles.main : styles.acceptedMain}>
+        {!acceptedTask && <Text style={styles.heading}>Boooored?</Text>}
+        {!acceptedTask && (
+          <Text style={styles.subheading}>Lets find a challenge for you</Text>
+        )}
         <View style={styles.generateDiv}>
-          <Pressable
-            onPress={onSearch}
-            style={[styles.orangeButton, styles.button]}
-          >
-            <Text>Get a random task</Text>
-          </Pressable>
-          <View style={styles.taskDiv}>
+          {!acceptedTask && (
+            <Pressable
+              onPress={onSearch}
+              style={[styles.orangeButton, styles.button]}
+            >
+              <Text>Find a challenge</Text>
+            </Pressable>
+          )}
+          <View style={!acceptedTask ? styles.taskDiv : styles.acceptedTask}>
+            {error ? <Text>{error}</Text> : null}
+            {doneMessage ? <Text>{doneMessage}</Text> : null}
             {task ? (
               <>
                 <Text style={styles.taskDivHeading}>{task.activity}</Text>
@@ -89,14 +114,37 @@ export default function MainContent() {
                     {task.link ? task.link : "no link"}
                   </Text>
                 </View>
-                <View style={styles.acceptRejectButton}>
-                  <Pressable style={[styles.acceptButton, styles.button]}>
-                    <Text style={styles.acceptRejectText}>I will do it</Text>
-                  </Pressable>
-                  <Pressable style={[styles.rejectButton, styles.button]}>
-                    <Text style={styles.acceptRejectText}>Pass</Text>
-                  </Pressable>
-                </View>
+                {acceptedTask && (
+                  <View style={styles.acceptRejectButton}>
+                    <Pressable
+                      onPress={resetTask}
+                      style={[styles.acceptButton, styles.button]}
+                    >
+                      <Text style={styles.acceptRejectText}>Done</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={resetTask}
+                      style={[styles.rejectButton, styles.button]}
+                    >
+                      <Text style={styles.acceptRejectText}>Give up</Text>
+                    </Pressable>
+                  </View>
+                )}
+                {!acceptedTask && (
+                  <View style={styles.acceptRejectButton}>
+                    <Pressable
+                      onPress={onAcceptChallenge}
+                      style={[styles.acceptButton, styles.button]}
+                    >
+                      <Text style={styles.acceptRejectText}>
+                        Accept the challenge
+                      </Text>
+                    </Pressable>
+                  </View>
+                )}
+                {!acceptedTask && (
+                  <Text>Not interested? Just find another one</Text>
+                )}
               </>
             ) : (
               !task &&
@@ -114,6 +162,16 @@ export default function MainContent() {
 }
 
 const styles = StyleSheet.create({
+  acceptedMain: {
+    width: "100%",
+    height: "100%",
+  },
+  acceptedTask: {
+    padding: 20,
+    width: "100%",
+    height: "100%",
+    backgroundColor: "#FFD580",
+  },
   desc: { fontSize: 15, fontWeight: "bold" },
   description: {
     flexDirection: "row",
