@@ -233,6 +233,7 @@ const styles = StyleSheet.create({
   generateDiv: {
     marginTop: 30,
     alignItems: "center",
+    zIndex: 500,
   },
   status: {
     backgroundColor: "#DDD",
